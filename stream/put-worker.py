@@ -4,6 +4,11 @@ Usage: python put-worker.py
 Reads:  C:\\Users\\capta\\lyra-home\\deploy-kits\\stream\\worker.lyra.js
 Token:  C:\\Users\\capta\\lyra-home\\cf-root-token.txt
 Account: knobology. Worker: lyra-home.
+
+FIXED 2026-10-15 (heartbeat): the account id was b1925ba9... (wrong) and the LYRA_KV
+binding was MISSING from metadata. A PUT without the full bindings array WIPES LYRA_KV
+(that is how CORPUS_CACHE was erased on Oct 1). Correct values below are from
+memory/concepts/lyra-home.md line 75-76, the proven redeploy recipe.
 """
 import io, sys, json, urllib.request, os
 
@@ -11,7 +16,8 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 
 WORKER = r"C:\Users\capta\lyra-home\deploy-kits\stream\worker.lyra.js"
 TOKENF = r"C:\Users\capta\lyra-home\cf-root-token.txt"
-ACCOUNT = "b1925ba9fbbc872b4822feb90fa38bde"   # knobology
+ACCOUNT = "9342a170f13921bc5ef8b0ffde3b8602"   # knobology (proven, lyra-home.md:76)
+KV_ID = "24e2b30874a04c2584b9a831a1b66a32"    # LYRA_KV namespace (lyra-home.md:75)
 SCRIPT = "lyra-home"
 
 token = open(TOKENF).read().strip()
@@ -20,11 +26,11 @@ print("worker bytes:", len(src))
 
 meta = {
     "main_module": "worker.lyra.js",
-    "compatibility_date": "2026-09-01",
+    "compatibility_date": "2024-12-01",
     "bindings": [
+        {"type": "kv_namespace", "name": "LYRA_KV", "namespace_id": KV_ID},
         {"type": "ai", "name": "AI"},
     ],
-    # LYRA_KV namespace id must be filled from the live worker if different.
 }
 
 # Build multipart/form-data by hand (stdlib only, no requests on the ASUS).
