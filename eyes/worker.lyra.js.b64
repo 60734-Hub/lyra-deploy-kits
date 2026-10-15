@@ -576,19 +576,27 @@ async function handle(request, env) {
     let cameraNote = "";
     if (body && typeof body.image_b64 === "string" && body.image_b64.length > 100 && env.AI) {
       try {
-        let vr = null;
-        try {
-          vr = await env.AI.run("@cf/meta/llama-3.2-11b-vision-instruct", {
-            messages: [{ role: "user", content: [
-              { type: "text", text: "Describe precisely what you see in this image: text, objects, screens, people, colors, anything notable. One short paragraph." },
-              { type: "image_url", image_url: "data:image/jpeg;base64," + body.image_b64 }
-            ]}],
-            max_tokens: 512
-          });
-        } catch (e1) {
-          const imgBuf = Uint8Array.from(atob(body.image_b64), c => c.charCodeAt(0));
-          vr = await env.AI.run("@cf/llava-1.5-7b-hf", { image: imgBuf, prompt: "Describe precisely what you see in this image. One short paragraph.", max_tokens: 512 });
-        }
+        const visionAsk = async () => {
+          try {
+            return await env.AI.run("@cf/meta/llama-3.2-11b-vision-instruct", {
+              messages: [{ role: "user", content: "Describe precisely what you see in this image: text, objects, screens, people, colors, anything notable. One short paragraph." }],
+              image: "data:image/jpeg;base64," + body.image_b64,
+              max_tokens: 512
+            });
+          } catch (e1) {
+            const msg1 = String(e1 && e1.message || e1);
+            if (/agree|license/i.test(msg1)) {
+              await env.AI.run("@cf/meta/llama-3.2-11b-vision-instruct", { prompt: "agree" });
+              return await env.AI.run("@cf/meta/llama-3.2-11b-vision-instruct", {
+                messages: [{ role: "user", content: "Describe precisely what you see in this image: text, objects, screens, people, colors, anything notable. One short paragraph." }],
+                image: "data:image/jpeg;base64," + body.image_b64,
+                max_tokens: 512
+              });
+            }
+            throw e1;
+          }
+        };
+        const vr = await visionAsk();
         cameraNote = (vr && (vr.response || vr.description)) || "";
         brain = "workers-vision";
       } catch (e) { cameraNote = "(camera read failed: " + String(e && e.message || e) + ")"; }
