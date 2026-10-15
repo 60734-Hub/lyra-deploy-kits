@@ -2,7 +2,13 @@
 
 State: patched + sim-verified 4/4 in the sandbox. NOT deployed. Live /api/brain/stream returns 404.
 Ferry: https://raw.githubusercontent.com/60734-Hub/lyra-deploy-kits/main/eyes/worker.lyra.js.b64 (public, 74,332 B)
-Expected worker: 55,748 B, md5 6e88f602baa31caaa6dde428be7e4827
+Expected worker: 55,766 B, md5 c5a5a9efd441ca2d5731bd426fa4eb7e
+
+Carries TWO things in one PUT:
+1. Streaming replies (SSE) — /api/brain/stream + streaming send() in both clients.
+2. FIX: the `<style>` block on /chat and /console was never closed (no `</style>` before `</head>`),
+   so the CSS parser swallowed the entire page body — both pages served an empty <body> and the
+   chat gate/input were unreachable. Two `</style>` inserted, one per page. / and the 3D sim were fine.
 
 ## Step 1 — pull + decode on the ASUS (PowerShell, as capta)
 ```powershell
