@@ -634,15 +634,15 @@ header small { display:block; color:#66788c; font-size:10.5px; letter-spacing:.6
 #gate { display:none; }
 </style></head><body>
 <aside>
-  <div class="brand"><svg viewBox="0 0 40 24" width="34" height="20" style="vertical-align:middle"><path d="M15 3c-5 0-9 4-9 9 0 3 1 5 2 7l-1 4h5l1-3" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round"/><path d="M25 3c5 0 9 4 9 9 0 3-1 5-2 7l1 4h-5l-1-3" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round"/></svg><b>Lyra</b></div>\n  <div style="text-align:center;padding:0 14px 8px;"><a href="/ownership" style="color:#4d5f73;font-size:10.5px;letter-spacing:.6px;text-decoration:none;">CERTIFICATE OF OWNERSHIP</a></div>
+  <div class="brand"><svg viewBox="0 0 40 24" width="34" height="20" style="vertical-align:middle"><path d="M15 3c-5 0-9 4-9 9 0 3 1 5 2 7l-1 4h5l1-3" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round"/><path d="M25 3c5 0 9 4 9 9 0 3-1 5-2 7l1 4h-5l-1-3" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round"/></svg><b>Knobology</b></div>\n  <div style="text-align:center;padding:0 14px 8px;"><a href="/ownership" style="color:#4d5f73;font-size:10.5px;letter-spacing:.6px;text-decoration:none;">CERTIFICATE OF OWNERSHIP</a></div>
   <button id="new">+ New chat</button>
   <div id="tlist"></div>
 </aside>
 <main>
-  <header><div class="t">Lyra</div><small>HER OWN POWER - ZERO PROVIDERS</small></header>
+  <header><div class="t">Knobology</div><small>HER OWN POWER - ZERO PROVIDERS</small></header>
   <div id="log"><div class="wrap" id="wrap"></div></div>
   <div id="st"></div>
-  <div id="bar"><input id="in" placeholder="Message Lyra..." autocomplete="off"><button id="send">Send</button></div>
+  <div id="bar"><input id="in" placeholder="Message Knobology..." autocomplete="off"><button id="send">Send</button></div>
 </main>
 <div id="gate"><div class="card"><div class="orb" style="margin:0 auto 14px"></div><input id="k" type="password" placeholder="Family key"><br><button onclick="save()">Enter</button></div></div>
 <script>
