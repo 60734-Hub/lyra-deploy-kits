@@ -343,7 +343,7 @@ const CONSOLE = `<!doctype html>
   <button onclick="open_()">Open</button>
 </div>
 <nav>
-  <span id="avatar" title="Lyra is here"></span>
+  <div class="brand"><span id="avatar" title="Lyra is here"></span><div><div class="name">Lyra</div><div class="sub">lyrahome &middot; online</div></div></div>
   <button class="on" onclick="tab('chat',this)">CHAT</button>
   <button onclick="tab('hands',this)">HANDS</button>
   <button onclick="tab('mem',this)">MEMORY</button>
