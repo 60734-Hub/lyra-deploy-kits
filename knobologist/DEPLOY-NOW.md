@@ -1,14 +1,19 @@
-# KNOBOLOGIST WORKER - DEPLOY NOW (one command)
+# DEPLOY NOW - lyra-home (streaming + learn pipeline)
 
-cd knobologist
-python deploy-stream.py
+One PUT. Needs: a Cloudflare root token with Workers Scripts edit permission.
 
-Needs only: cf-root-token.txt beside it (or CF_API_TOKEN env var).
-Script self-checks md5 87be4c68eeb5378c7b82b148a5ec7f25 (71,565 B) and aborts on mismatch.
-Account 9342a170f13921bc5ef8b0ffde3b8602 (knobology). Bindings AI + LYRA_KV, keep_secrets.
+1. Put the token in a file named cf-root-token.txt next to this script
+   (or set the CF_TOKEN environment variable).
+2. Run:  python deploy-stream.py
+   The script self-checks the worker hash first (78333 bytes / md5 43c7a72b) and aborts
+   if it does not match. Then it PUTs to account 9342a170f13921bc5ef8b0ffde3b8602,
+   script lyra-home.
+3. Wait 25 seconds. Then verify:
+   - GET  https://lyrahome.app/chat        -> must contain </style>  (page no longer blank)
+   - GET  https://lyrahome.app/app         -> 200
+   - GET  https://lyrahome.app/ownership   -> 200
+   - POST https://lyrahome.app/api/learn   {"title":"test","text":"hello"}  (Bearer family key) -> ok:true
+   - POST https://lyrahome.app/api/learn/retrieve {"query":"hello"}         (Bearer family key) -> hits
+   - POST https://lyrahome.app/api/brain/stream {"message":"hi"}            (Bearer family key) -> SSE
 
-After ~25s verify:
-- https://lyrahome.app/chat -> body contains </style>
-- https://lyrahome.app/app -> 200 (threads + streaming UI)
-- https://lyrahome.app/ownership -> certificate
-- POST /api/brain/stream with family key -> text/event-stream
+Family brain key (bearer): see HANDOVER.md.
