@@ -2,12 +2,13 @@
 # Needs: Cloudflare root token (Workers Scripts edit perm).
 # Usage: set CF_TOKEN env or put token in cf-root-token.txt next to this file.
 # Verify: after ~25s, GET https://lyrahome.app/chat must contain </style>,
+#         POST /api/learn (Bearer brain_token) must absorb, /api/learn/retrieve must return hits,
 #         POST https://lyrahome.app/api/brain/stream (Bearer brain_token) must stream SSE.
 import base64, hashlib, json, os, time, urllib.request, urllib.error, uuid
 from pathlib import Path
 
 ACC = "9342a170f13921bc5ef8b0ffde3b8602"   # knobology account (verified)
-MD5 = "87be4c68eeb5378c7b82b148a5ec7f25"   # verified build (71,565 B)
+MD5 = "43c7a72bb452947b5bcb6ba56dbdba90"   # verified build (78,333 B, learn pipeline)
 HERE = Path(__file__).parent
 
 code = (HERE / "worker.lyra.js").read_bytes()
