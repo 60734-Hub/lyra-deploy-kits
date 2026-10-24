@@ -8,7 +8,7 @@ import base64, hashlib, json, os, time, urllib.request, urllib.error, uuid
 from pathlib import Path
 
 ACC = "9342a170f13921bc5ef8b0ffde3b8602"   # knobology account (verified)
-MD5 = "43c7a72bb452947b5bcb6ba56dbdba90"   # verified build (78,333 B, learn pipeline)
+MD5 = "437103ea30bf948cd7b082a856a62d17"   # verified build (80,128 B, learn pipeline + digest sync)
 HERE = Path(__file__).parent
 
 code = (HERE / "worker.lyra.js").read_bytes()
