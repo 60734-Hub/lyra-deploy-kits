@@ -4,7 +4,7 @@
 # Verify: after ~25s, GET https://lyrahome.app/chat must contain </style>,
 #         POST /api/learn (Bearer brain_token) must absorb, /api/learn/retrieve must return hits,
 #         POST https://lyrahome.app/api/brain/stream (Bearer brain_token) must stream SSE.
-import base64, hashlib, json, os, time, urllib.request, urllib.error, uuid
+import base64, hashlib, json, os, re, time, urllib.request, urllib.error, uuid, subprocess
 from pathlib import Path
 
 ACC = "9342a170f13921bc5ef8b0ffde3b8602"   # knobology account (verified)
@@ -46,3 +46,72 @@ except urllib.error.HTTPError as e:
 print("waiting 25s for edge..."); time.sleep(25)
 html = urllib.request.urlopen("https://lyrahome.app/chat", timeout=60).read().decode("utf-8", "replace")
 print("chat </style> count:", html.count("</style>"))
+
+
+# ---- post-PUT verification ----
+KEY = os.environ.get("LYRA_KEY", "")
+if not KEY:
+    kp = HERE / "lyra-key.txt"
+    if kp.exists(): KEY = kp.read_text().strip()
+if not KEY:
+    kp = HERE.parent / "HANDOVER.md"
+    if kp.exists():
+        m = re.search(r"^([0-9a-f]{64})$", kp.read_text(), re.M)
+        if m: KEY = m.group(1)
+import re
+H = {"Authorization": "Bearer " + KEY} if KEY else {}
+
+def get(path, timeout=60, tries=3):
+    # a transient 403 from the edge has been observed; retry before reporting a fault
+    last = (0, "")
+    # NOTE: Python's urllib is fingerprint-blocked by the edge here (403 error 1010);
+    # curl goes through. Use curl for the live checks.
+    last = (0, "")
+    for attempt in range(tries):
+        out = subprocess.run(["curl", "-sS", "-w", "\n%{http_code}", "--max-time", str(timeout),
+                              "https://lyrahome.app" + path], capture_output=True, text=True).stdout
+        body, _, code = out.rpartition("\n")
+        last = (int(code or 0), body)
+        if last[0] == 200:
+            return last
+        time.sleep(4)
+    return last
+
+def post(path, obj, timeout=90, tries=3):
+  last = (0, "")
+  for attempt in range(tries):
+    args = ["curl", "-sS", "-w", "\n%{http_code}", "--max-time", str(timeout), "-X", "POST",
+            "-H", "Content-Type: application/json"]
+    if KEY: args += ["-H", "Authorization: Bearer " + KEY]
+    args += ["--data", json.dumps(obj), "https://lyrahome.app" + path]
+    out = subprocess.run(args, capture_output=True, text=True).stdout
+    body, _, code = out.rpartition("\n")
+    last = (int(code or 0), body[:300])
+    if last[0] == 200:
+        return last
+    time.sleep(4)
+  return last
+
+checks = []
+st, body = get("/chat");        checks.append(("/chat contains </style>", st == 200 and "</style>" in body, "%s count=%d" % (st, body.count("</style>"))))
+st, body = get("/console");     checks.append(("/console contains </style>", st == 200 and "</style>" in body, "%s count=%d" % (st, body.count("</style>"))))
+st, _    = get("/app");         checks.append(("/app 200", st == 200, str(st)))
+st, _    = get("/ownership");   checks.append(("/ownership 200", st == 200, str(st)))
+st, _    = get("/api/learn");   checks.append(("/api/learn 200 (list)", st == 200, str(st)))
+st, body = post("/api/brain", {"message": "deploy self-check"}); checks.append(("/api/brain answers", st == 200 and "Not found" not in body, str(st)))
+st, body = post("/api/learn", {"title": "deploy-check", "text": "self check after deploy"})
+checks.append(("/api/learn absorb", st == 200 and "ok" in body.lower(), str(st)))
+st, body = post("/api/learn/retrieve", {"query": "self check", "k": 3})
+checks.append(("/api/learn/retrieve hits", st == 200 and "self check" in body, str(st)))
+
+print()
+print("=== POST-PUT VERIFICATION ===")
+bad = 0
+for name, ok, detail in checks:
+    print(("  PASS  " if ok else "  FAIL  ") + name + "  (" + detail + ")")
+    bad += 0 if ok else 1
+print("=== %d/%d passed ===" % (len(checks) - bad, len(checks)))
+if not KEY:
+    print("(no brain key found - set LYRA_KEY or drop lyra-key.txt next to this script to enable the API checks)")
+if bad:
+    raise SystemExit(1)
