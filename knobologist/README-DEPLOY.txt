@@ -54,7 +54,10 @@ VERIFICATION STATUS OF THIS BUILD (re-run 2026-10-27 against the EXACT bytes in 
   digest harness passes against the staged bytes, so the two files are behaviourally identical.
 
 FAMILY BRAIN KEY (bearer): saved beside this file as lyra-key.txt (the script reads it
-automatically). If it is missing, copy the key from HANDOVER.md one level up.
+automatically). If it is missing, the script scans the .md/.txt files in this folder
+and one level up for a bare 64-hex key and picks it up; failing that it still runs
+and reports the API checks as unauth. (Earlier revisions of this file pointed at a
+HANDOVER.md that is NOT shipped in this kit - that fallback was dead.)
 
 
 WHAT THE SCRIPT DOES ON ITS OWN
