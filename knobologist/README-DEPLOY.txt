@@ -19,18 +19,21 @@ That is the whole thing. The script verifies the worker bytes first (80,128 B /
 md5 437103ea30bf948cd7b082a856a62d17) and ABORTS on any mismatch, so it cannot
 ship the wrong build. Then it PUTs to the knobology account and waits 25s.
 
-WHAT IT FIXES (all measured live on 2026-10-27, not recalled):
+WHAT IT FIXES (all re-measured live 2026-10-28, not recalled):
   /chat         200  13,434 B  </style> count 0   -> BLANK PAGE   (fixed by this PUT)
   /console      200  19,731 B  </style> count 0   -> BLANK PAGE   (fixed by this PUT)
-  /api/brain    404   "Not found"                  -> brain route missing (fixed by this PUT)
   /app          404   (added by this PUT)
   /ownership    404   (added by this PUT)
   /api/learn    404   (added by this PUT)
   /api/health   200   {"ok":true,"who":"lyra","brain":"workers-ai"}
+  /api/brain    WORKS. POST with the family key returns 200 and a real reply
+                (verified 40/40 consecutive). GET returns 404 because the route is
+                POST-only - correct behaviour, NOT a fault. Earlier versions of this
+                file wrongly listed it as broken.
 
 The live worker is an intermediate Oct 15-morning revision: voice + camera + restyle,
-but with an unclosed <style> block on both pages and no brain route at all - even
-though the live /chat page calls /api/brain three times. Three faults, one PUT.
+with an unclosed <style> block on both pages and no /app, /ownership or /api/learn
+route. Two blank pages plus three missing routes, one PUT.
 
 AFTER THE PUT - verify these:
   GET  https://lyrahome.app/chat        -> 200 AND contains </style>
