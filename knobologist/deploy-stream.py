@@ -61,36 +61,38 @@ if not KEY:
 import re
 H = {"Authorization": "Bearer " + KEY} if KEY else {}
 
-def get(path, timeout=60, tries=3):
-    # a transient 403 from the edge has been observed; retry before reporting a fault
-    last = (0, "")
-    # NOTE: Python's urllib is fingerprint-blocked by the edge here (403 error 1010);
-    # curl goes through. Use curl for the live checks.
+# The edge blocks bare Python clients (403 error code 1010) - it is a User-Agent
+# fingerprint check, not an IP block. Sending a normal browser UA goes straight
+# through, so no curl dependency is needed and the checks work on any machine
+# that can run Python (incl. a clean Windows box with no curl.exe).
+UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+
+def _request(req, timeout, tries=3):
     last = (0, "")
     for attempt in range(tries):
-        out = subprocess.run(["curl", "-sS", "-w", "\n%{http_code}", "--max-time", str(timeout),
-                              "https://lyrahome.app" + path], capture_output=True, text=True).stdout
-        body, _, code = out.rpartition("\n")
-        last = (int(code or 0), body)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                last = (r.status, r.read().decode("utf-8", "replace"))
+        except urllib.error.HTTPError as e:
+            last = (e.code, e.read().decode("utf-8", "replace"))
+        except Exception as e:
+            last = (0, "%s: %s" % (type(e).__name__, e))
         if last[0] == 200:
             return last
         time.sleep(4)
     return last
 
+def get(path, timeout=60, tries=3):
+    return _request(urllib.request.Request("https://lyrahome.app" + path, headers=dict(UA)),
+                    timeout, tries)
+
 def post(path, obj, timeout=90, tries=3):
-  last = (0, "")
-  for attempt in range(tries):
-    args = ["curl", "-sS", "-w", "\n%{http_code}", "--max-time", str(timeout), "-X", "POST",
-            "-H", "Content-Type: application/json"]
-    if KEY: args += ["-H", "Authorization: Bearer " + KEY]
-    args += ["--data", json.dumps(obj), "https://lyrahome.app" + path]
-    out = subprocess.run(args, capture_output=True, text=True).stdout
-    body, _, code = out.rpartition("\n")
-    last = (int(code or 0), body[:300])
-    if last[0] == 200:
-        return last
-    time.sleep(4)
-  return last
+    h = dict(UA); h["Content-Type"] = "application/json"
+    if KEY: h["Authorization"] = "Bearer " + KEY
+    return _request(urllib.request.Request("https://lyrahome.app" + path,
+                                           data=json.dumps(obj).encode(), method="POST",
+                                           headers=h), timeout, tries)
 
 checks = []
 st, body = get("/chat");        checks.append(("/chat contains </style>", st == 200 and "</style>" in body, "%s count=%d" % (st, body.count("</style>"))))
