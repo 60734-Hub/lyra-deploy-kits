@@ -1,0 +1,66 @@
+## DEPLOY KIT - complete folder, ready to run
+
+Path: /workspace/scratch/apply-evidence-28/kit/
+
+  worker.lyra.js        80,128 B  md5 437103ea30bf948cd7b082a856a62d17   node --check clean
+  worker.lyra.js.b64   106,840 B  (ferry payload)
+  deploy-stream.py       6,743 B  md5 597cffefb5bf6131cd177c6c341ea7a7
+  DEPLOY-START-HERE.txt           plain-language: token steps + the one command
+  README-DEPLOY.txt               same, longer
+  DEPLOY-NOW.md                   technical: what the PUT fixes, the full verify list
+  lyra-key.txt                    family brain key (bearer), so nothing is a dangling reference
+  sim-learn.mjs / sim-stream.mjs  the two harnesses
+
+HARNESS RESULTS, re-run 2026-10-28 against the STAGED bytes:
+  sim-learn.mjs  -> 22 passed, 0 failed
+  sim-stream.mjs -> 7/7 PASS + extended 3/3 PASS
+  node --check   -> clean
+  (run them as: node sim-learn.mjs worker.lyra.js - the worker path is an ARGUMENT)
+
+## OCT 28 CORRECTIONS - two real defects found and fixed in deploy-stream.py
+
+1. FALSE FAILURE ON A SUCCESSFUL DEPLOY (the serious one).
+   The script's post-PUT "chat peek" fetched https://lyrahome.app/chat with NO
+   User-Agent header. The edge rejects headerless requests with 403, and the fetch was
+   NOT wrapped in a try - so it threw an uncaught exception on the line immediately
+   after a successful PUT. A working deploy would have crashed and read to him as
+   broken. Fixed: the peek now sends the UA and is wrapped so it can never abort the run.
+   This is the SAME failure class as the curl bug fixed earlier today, and it survived
+   that fix because it was on a different line.
+
+2. WRONG FAULT CLAIM ABOUT /api/brain.
+   DEPLOY-NOW.md, README-DEPLOY.txt and DEPLOY-START-HERE.txt all listed
+   "/api/brain 404" as a live fault this PUT fixes. IT IS NOT A FAULT. Measured live
+   Oct 28: POST /api/brain with the family key returns 200 and a real reply, verified
+   40/40 consecutive runs. It returns 404 on GET because the route is POST-only, which
+   is correct design. All three docs corrected, and the script's own check was
+   strengthened from "not 404" to "200 AND the body contains a reply".
+
+   This was the fourth scaffolding error in a week and the second one that would have
+   misreported the deploy. The worker has never been the problem.
+
+3. EDGE RULE NOW PRECISELY CHARACTERISED.
+   No User-Agent header at all -> 403 (error code 1010) on every path.
+   Any User-Agent -> 200. Not a Python block, not an IP block, not a curl problem.
+   The script sends a normal browser UA, so no curl dependency is needed anywhere and
+   the checks run on any machine with Python (incl. a clean Windows box with no curl.exe).
+
+## LIVE STATE, re-measured 2026-10-28
+
+  /chat       200  13,434 B  </style> count 0   BLANK  (style opens at byte 230, never closes;
+                                                       everything after is swallowed)
+  /console    200  19,731 B  </style> count 0   BLANK
+  /app        404
+  /ownership  404
+  /api/learn  404
+  /api/brain  POST 200 WORKING   |  GET 404 (POST-only, correct)
+  /api/brain/stream 404
+  /api/health 200  {"ok":true,"who":"lyra","brain":"workers-ai"}
+
+SCRIPT SELF-CHECK, proven this pass:
+  no token            -> prints correct bytes/md5, then "NO TOKEN", exits 1 (clean)
+  dummy token         -> "PUT FAILED 401 Authentication error", exits 1 (clean)
+  PUT stubbed to 200  -> full verification suite runs, 1/8 PASS, reports the real faults
+                         correctly, exits 1
+
+FERRY: 60734-Hub/lyra-deploy-kits/knobologist/ - refreshed 2026-10-28, byte-verified.
