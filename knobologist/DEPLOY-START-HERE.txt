@@ -17,12 +17,13 @@ PUTs it, waits 25 seconds, then runs eight live checks and prints PASS/FAIL per
 line. Eight PASS = the site is fixed.
 
 
-WHAT IS BROKEN ON THE LIVE SITE RIGHT NOW (measured 2026-10-27):
+WHAT IS BROKEN ON THE LIVE SITE RIGHT NOW (re-measured 2026-10-28):
   /chat        blank page   (unclosed <style> block)
   /console     blank page   (unclosed <style> block)
-  /api/brain   404          (route missing entirely, though /chat calls it)
   /app, /ownership, /api/learn  404 (routes do not exist yet)
   /api/health  200 ok
+  /api/brain   WORKS - POST returns a real reply (200). It is POST-only by design,
+               so a GET returns 404; that is correct, not a fault.
 
 This one PUT fixes all of them: it carries the closed styles, the brain route,
 the streaming endpoint, the ownership page, and the learn pipeline.
