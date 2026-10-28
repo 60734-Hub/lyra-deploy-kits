@@ -70,11 +70,20 @@ if not KEY:
     kp = HERE / "lyra-key.txt"
     if kp.exists(): KEY = kp.read_text().strip()
 if not KEY:
-    kp = HERE.parent / "HANDOVER.md"
-    if kp.exists():
-        m = re.search(r"^([0-9a-f]{64})$", kp.read_text(), re.M)
-        if m: KEY = m.group(1)
-import re
+    # Fallback: scan any .md/.txt sitting next to this script (or one level up)
+    # for a bare 64-hex key. Earlier revisions pointed at a HANDOVER.md that is
+    # NOT shipped in this kit, so the fallback silently did nothing.
+    for d in (HERE, HERE.parent):
+        if KEY: break
+        for f in sorted(d.glob("*")):
+            if not KEY and f.suffix.lower() in (".md", ".txt") and f.is_file():
+                try:
+                    m = re.search(r"^([0-9a-f]{64})$", f.read_text(errors="replace"), re.M)
+                except Exception:
+                    m = None
+                if m: KEY = m.group(1)
+if not KEY:
+    print("NOTE: no brain key found (lyra-key.txt missing) - brain/learn checks will run unauth.")
 H = {"Authorization": "Bearer " + KEY} if KEY else {}
 
 # (UA is defined at the top of this file - see the note there.)
