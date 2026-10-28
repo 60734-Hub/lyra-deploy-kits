@@ -11,6 +11,15 @@ ACC = "9342a170f13921bc5ef8b0ffde3b8602"   # knobology account (verified)
 MD5 = "437103ea30bf948cd7b082a856a62d17"   # verified build (80,128 B, learn pipeline + digest sync)
 HERE = Path(__file__).parent
 
+# The edge rejects requests that carry NO User-Agent header at all (403 error code
+# 1010). Measured Oct 28: no UA -> 403 on every path; any UA -> 200. It is not a
+# Python block and not an IP block, so no curl dependency is needed and the checks
+# work on any machine that can run Python (incl. a clean Windows box with no curl.exe).
+# Defined here, at the top, because the FIRST network call in this script is the
+# post-PUT chat peek below and it needs the header too.
+UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+
 code = (HERE / "worker.lyra.js").read_bytes()
 md5 = hashlib.md5(code).hexdigest()
 print("bytes", len(code), "md5", md5)
@@ -44,8 +53,15 @@ except urllib.error.HTTPError as e:
     print("PUT FAILED", e.code); print(e.read().decode()[:3000]); raise SystemExit(1)
 
 print("waiting 25s for edge..."); time.sleep(25)
-html = urllib.request.urlopen("https://lyrahome.app/chat", timeout=60).read().decode("utf-8", "replace")
-print("chat </style> count:", html.count("</style>"))
+# NOTE: this early peek MUST send a User-Agent too - the edge 403s any request
+# without one. An uncaught 403 here would abort the script AFTER a successful PUT,
+# making a working deploy read as a failure.
+try:
+    _peek = urllib.request.Request("https://lyrahome.app/chat", headers={"User-Agent": UA})
+    html = urllib.request.urlopen(_peek, timeout=60).read().decode("utf-8", "replace")
+    print("chat </style> count:", html.count("</style>"))
+except Exception as e:
+    print("chat peek failed (non-fatal, full checks below):", type(e).__name__, e)
 
 
 # ---- post-PUT verification ----
@@ -61,12 +77,7 @@ if not KEY:
 import re
 H = {"Authorization": "Bearer " + KEY} if KEY else {}
 
-# The edge blocks bare Python clients (403 error code 1010) - it is a User-Agent
-# fingerprint check, not an IP block. Sending a normal browser UA goes straight
-# through, so no curl dependency is needed and the checks work on any machine
-# that can run Python (incl. a clean Windows box with no curl.exe).
-UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                    "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+# (UA is defined at the top of this file - see the note there.)
 
 def _request(req, timeout, tries=3):
     last = (0, "")
@@ -100,7 +111,7 @@ st, body = get("/console");     checks.append(("/console contains </style>", st 
 st, _    = get("/app");         checks.append(("/app 200", st == 200, str(st)))
 st, _    = get("/ownership");   checks.append(("/ownership 200", st == 200, str(st)))
 st, _    = get("/api/learn");   checks.append(("/api/learn 200 (list)", st == 200, str(st)))
-st, body = post("/api/brain", {"message": "deploy self-check"}); checks.append(("/api/brain answers", st == 200 and "Not found" not in body, str(st)))
+st, body = post("/api/brain", {"message": "deploy self-check"}); checks.append(("/api/brain answers (POST, 200 + reply)", st == 200 and "reply" in body, str(st)))
 st, body = post("/api/learn", {"title": "deploy-check", "text": "self check after deploy"})
 checks.append(("/api/learn absorb", st == 200 and "ok" in body.lower(), str(st)))
 st, body = post("/api/learn/retrieve", {"query": "self check", "k": 3})
