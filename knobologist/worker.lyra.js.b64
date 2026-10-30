@@ -1110,6 +1110,7 @@ async function handle(request, env) {
             }
           }
           full = full.replace(/\[\[RUN:[\s\S]*?\]\]/g, "").trim();
+          push({ replace: full, brain: brain });   // swap the streamed tokens for the clean text (tag strip, timeout note)
           history.push({ role: "assistant", content: full });
           try { await env.LYRA_KV.put("brain_history", JSON.stringify(history.slice(-40))); } catch (e) {}
           push({ done: true, brain: cameraNote ? "workers-ai+vision" : brain });
