@@ -145,7 +145,7 @@ async function send(){
     if(!r.ok||!r.body) throw new Error("nostream");
     const rd=r.body.getReader(); const dec=new TextDecoder(); let buf="";
     for(;;){ const rdv=await rd.read(); if(rdv.done)break; buf+=dec.decode(rdv.value,{stream:true});
-      const lines=buf.split("\n"); buf=lines.pop();
+      const lines=buf.split("\\n"); buf=lines.pop();
       for(const ln of lines){ const s=ln.trim(); if(!s.startsWith("data:"))continue;
         try{ const j=JSON.parse(s.slice(5).trim());
           if(j.replace){acc=j.replace; w.innerHTML="<b>LYRA</b>"+esc(acc)+(j.brain&&j.brain!=="workers-ai"?" <span style='color:#f2c14e;font-size:11px'>["+j.brain+"]</span>":"");}
@@ -443,7 +443,7 @@ async function send(){
     if(!r.ok||!r.body) throw new Error("nostream");
     const rd=r.body.getReader(); const dec=new TextDecoder(); let buf="";
     for(;;){ const rdv=await rd.read(); if(rdv.done)break; buf+=dec.decode(rdv.value,{stream:true});
-      const lines=buf.split("\n"); buf=lines.pop();
+      const lines=buf.split("\\n"); buf=lines.pop();
       for(const ln of lines){ const s=ln.trim(); if(!s.startsWith("data:"))continue;
         try{ const j=JSON.parse(s.slice(5).trim());
           if(j.replace){acc=j.replace; w.innerHTML="<b>LYRA</b>"+esc(acc)+(j.brain&&j.brain!=="workers-ai"?" <span style='color:#f2c14e;font-size:11px'>["+j.brain+"]</span>":"");}
@@ -691,7 +691,7 @@ function send() { var inp = document.getElementById("in"), s = document.getEleme
     var rd = r.body.getReader(), dec = new TextDecoder(), buf = "";
     function pump() { return rd.read().then(function(x) {
       if (x.done) { s.disabled = false; saveT(); loadList(); return; }
-      buf += dec.decode(x.value, { stream: true }); var lines = buf.split("\n"); buf = lines.pop();
+      buf += dec.decode(x.value, { stream: true }); var lines = buf.split("\\n"); buf = lines.pop();
       lines.forEach(function(l) { l = l.trim(); if (!l.startsWith("data:")) return; try { var j = JSON.parse(l.slice(5)); if (j.t) { ai.content += j.t; render(); } if (j.replace) { ai.content = j.replace; render(); } if (j.done) { document.getElementById("st").textContent = "brain: " + (j.brain || "workers-ai"); } } catch (e) {} });
       return pump(); }); }
     return pump();
