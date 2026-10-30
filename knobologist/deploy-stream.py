@@ -8,7 +8,7 @@ import base64, hashlib, json, os, re, time, urllib.request, urllib.error, uuid, 
 from pathlib import Path
 
 ACC = "9342a170f13921bc5ef8b0ffde3b8602"   # knobology account (verified)
-MD5 = "437103ea30bf948cd7b082a856a62d17"   # verified build (80,128 B, learn pipeline + digest sync)
+MD5 = "80c4508d14c5d9b386c819a6e82c24be"   # Vellum-style chat UI (sidebar + threads), oct 30
 HERE = Path(__file__).parent
 
 # The edge rejects requests that carry NO User-Agent header at all (403 error code
@@ -45,7 +45,7 @@ body = part("metadata", "metadata.json", "application/json", json.dumps(meta).en
      + b"--" + boundary.encode() + b"--\r\n"
 req = urllib.request.Request("https://api.cloudflare.com/client/v4/accounts/%s/workers/scripts/lyra-home" % ACC,
                              data=body, method="PUT",
-                             headers={"Authorization": "Bearer " + tok, "Content-Type": "multipart/form-data; boundary=" + boundary})
+                             headers={"X-Auth-Email": "programmably@gmail.com", "X-Auth-Key": tok, "Content-Type": "multipart/form-data; boundary=" + boundary})
 try:
     with urllib.request.urlopen(req, timeout=120) as r:
         print("PUT status", r.status); print(r.read().decode()[:1200])
