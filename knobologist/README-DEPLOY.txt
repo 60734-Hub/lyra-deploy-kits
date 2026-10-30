@@ -46,8 +46,8 @@ AFTER THE PUT - verify these:
   GET  https://lyrahome.app/api/learn   (Bearer) -> digestSynced:true
   POST https://lyrahome.app/api/brain/stream {"message":"hi"} (Bearer) -> SSE
 
-VERIFICATION STATUS OF THIS BUILD (re-run 2026-10-27 against the EXACT bytes in this folder):
-  sim-learn.mjs  36 passed, 0 failed   (absorb / embed / retrieve / delete / digest sync)
+VERIFICATION STATUS OF THIS BUILD (re-run 2026-10-30 against the EXACT bytes in this folder):
+  sim-learn.mjs  22 passed, 0 failed   (absorb / embed / retrieve / delete / digest sync)
   sim-stream.mjs  7 passed, 0 failed + extended 3 passed, 0 failed  (SSE / /app / threads)
   node --check: clean
   Also cross-checked: the short harness passes against the digest artifact and the full
