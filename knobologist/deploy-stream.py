@@ -8,7 +8,7 @@ import base64, hashlib, json, os, re, time, urllib.request, urllib.error, uuid, 
 from pathlib import Path
 
 ACC = "9342a170f13921bc5ef8b0ffde3b8602"   # knobology account (verified)
-MD5 = "86933656c57a6ffea11ae7ee1a16d3b2"   # storage key lyra_key->lyra_k2 (stale-state kill), oct 30
+MD5 = "d54b345f8f9e733a541d8a05cdda1c6b"   # split-\n template escape fix (all three pages), oct 30
 HERE = Path(__file__).parent
 
 # The edge rejects requests that carry NO User-Agent header at all (403 error code
