@@ -57,7 +57,7 @@ print("waiting 25s for edge..."); time.sleep(25)
 # without one. An uncaught 403 here would abort the script AFTER a successful PUT,
 # making a working deploy read as a failure.
 try:
-    _peek = urllib.request.Request("https://lyrahome.app/chat", headers={"User-Agent": UA})
+    _peek = urllib.request.Request("https://lyrahome.app/chat", headers=dict(UA))
     html = urllib.request.urlopen(_peek, timeout=60).read().decode("utf-8", "replace")
     print("chat </style> count:", html.count("</style>"))
 except Exception as e:
@@ -78,15 +78,15 @@ if not KEY:
         for f in sorted(d.glob("*")):
             if not KEY and f.suffix.lower() in (".md", ".txt") and f.is_file():
                 try:
-                    m = re.search(r"^([0-9a-f]{64})$", f.read_text(errors="replace"), re.M)
+                    m = re.search(r"\b([0-9a-f]{64})\b", f.read_text(errors="replace"))
                 except Exception:
                     m = None
                 if m: KEY = m.group(1)
 if not KEY:
     print("NOTE: no brain key found (lyra-key.txt missing) - brain/learn checks will run unauth.")
-H = {"Authorization": "Bearer " + KEY} if KEY else {}
-
-# (UA is defined at the top of this file - see the note there.)
+# NOTE: H is never used as-is; get()/post() build their own headers. It is kept
+# only for readability. Any request built from it would lack the User-Agent the
+# edge requires (403 code 1010).
 
 def _request(req, timeout, tries=3):
     last = (0, "")
