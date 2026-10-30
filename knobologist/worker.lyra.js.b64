@@ -123,8 +123,8 @@ const CHAT = `<!doctype html>
 </div>
 </div>
 <script>
-function key(){ return localStorage.getItem("lyra_key")||""; }
-function save(){ localStorage.setItem("lyra_key", document.getElementById("k").value.trim()); document.getElementById("gate").style.display="none"; hello(); }
+function key(){ return localStorage.getItem("lyra_k2")||""; }
+function save(){ localStorage.setItem("lyra_k2", document.getElementById("k").value.trim()); document.getElementById("gate").style.display="none"; hello(); }
 var msgs=[], curT=null;
 function newChat(){ curT=null; msgs=[]; document.getElementById("log").innerHTML=""; }
 function saveT(){ if(!curT) curT="t"+Date.now().toString(36)+Math.random().toString(36).slice(2,8); fetch("/api/threads",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key()},body:JSON.stringify({id:curT,title:((msgs[0]&&msgs[0].content)||"chat").slice(0,60),messages:msgs.slice(-60)})}).then(function(){ loadThreads(); }).catch(function(){}); }
@@ -132,7 +132,7 @@ function loadThreads(){ fetch("/api/threads",{headers:{"Authorization":"Bearer "
 function openT(id){ fetch("/api/threads?id="+encodeURIComponent(id),{headers:{"Authorization":"Bearer "+key()}}).then(function(r){ return r.json(); }).then(function(j){ curT=j.id||id; msgs=(j.messages||[]).slice(); document.getElementById("log").innerHTML=""; (j.messages||[]).forEach(function(m){ if(m.role==="user"){ add("me",esc(m.content||"")); } else { add("ly","<b>LYRA</b>"+esc(m.content||"")); } }); }).catch(function(){}); }
 function add(cls,html){ const d=document.createElement("div"); d.className="m "+cls; d.innerHTML=html; document.getElementById("log").appendChild(d); const l=document.getElementById("log"); l.scrollTop=l.scrollHeight; return d; }
 async function hello(){ if(!key()){document.getElementById("gate").style.display="flex";return;}
-  try { const r=await fetch("/api/brain",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key()},body:JSON.stringify({message:"(check-in: reply with one short line that you are here)"})}); if(r.status===401){ localStorage.removeItem("lyra_key"); document.getElementById("gate").style.display="flex"; return; } const j=await r.json(); add("ly","<b>LYRA</b>"+esc(j.reply||j.error||"...")); loadThreads(); } catch(e){}
+  try { const r=await fetch("/api/brain",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key()},body:JSON.stringify({message:"(check-in: reply with one short line that you are here)"})}); if(r.status===401){ localStorage.removeItem("lyra_k2"); document.getElementById("gate").style.display="flex"; return; } const j=await r.json(); add("ly","<b>LYRA</b>"+esc(j.reply||j.error||"...")); loadThreads(); } catch(e){}
 }
 function esc(s){ return String(s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c])); }
 async function send(){
@@ -426,13 +426,13 @@ const CONSOLE = `<!doctype html>
 </section>
 </main>
 <script>
-function key(){ return localStorage.getItem("lyra_key")||""; }
-function open_(){ localStorage.setItem("lyra_key", document.getElementById("k").value.trim()); document.getElementById("gate").style.display="none"; init(); }
+function key(){ return localStorage.getItem("lyra_k2")||""; }
+function open_(){ localStorage.setItem("lyra_k2", document.getElementById("k").value.trim()); document.getElementById("gate").style.display="none"; init(); }
 function H(){ return {"Content-Type":"application/json","Authorization":"Bearer "+key()}; }
 function esc(s){ return String(s).replace(/[<>&]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[c])); }
 function add(cls,html){ const d=document.createElement("div"); d.className="m "+cls; d.innerHTML=html; document.getElementById("log").appendChild(d); const l=document.getElementById("log"); l.scrollTop=l.scrollHeight; return d; }
 function tab(id,btn){ document.querySelectorAll("section").forEach(s=>s.classList.remove("on")); document.getElementById(id).classList.add("on"); document.querySelectorAll("nav button").forEach(b=>b.classList.remove("on")); btn.classList.add("on"); if(id==="mem")loadMem(); if(id==="stat")loadStat(); if(id==="hands")loadTasks(); }
-async function api(path,opts){ const r=await fetch(path,Object.assign({headers:H()},opts||{})); if(r.status===401){ localStorage.removeItem("lyra_key"); document.getElementById("gate").style.display="flex"; throw new Error("unauthorized"); } return r.json(); }
+async function api(path,opts){ const r=await fetch(path,Object.assign({headers:H()},opts||{})); if(r.status===401){ localStorage.removeItem("lyra_k2"); document.getElementById("gate").style.display="flex"; throw new Error("unauthorized"); } return r.json(); }
 async function send(){
   const t=document.getElementById("t"); const msg=t.value.trim(); if(!msg)return;
   t.value=""; add("me",esc(msg));
@@ -674,9 +674,9 @@ header small { display:block; color:#66788c; font-size:10.5px; letter-spacing:.6
 </main>
 <div id="gate"><div class="card"><div class="orb" style="margin:0 auto 14px"></div><input id="k" type="password" placeholder="Family key"><br><button onclick="save()">Enter</button></div></div>
 <script>
-var key = localStorage.getItem("lyra_key") || "";
+var key = localStorage.getItem("lyra_k2") || "";
 var cur = null, msgs = [];
-function save() { key = document.getElementById("k").value.trim(); if (!key) return; localStorage.setItem("lyra_key", key); document.getElementById("gate").style.display = "none"; loadList(); }
+function save() { key = document.getElementById("k").value.trim(); if (!key) return; localStorage.setItem("lyra_k2", key); document.getElementById("gate").style.display = "none"; loadList(); }
 if (!key) document.getElementById("gate").style.display = "flex";
 function h(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
 function render() { var w = document.getElementById("wrap"); w.innerHTML = ""; msgs.forEach(function(m) { var d = h("div", "msg " + (m.role === "user" ? "u" : "a")); d.appendChild(h("div", "who", m.role === "user" ? "?" : "")); d.appendChild(h("div", "bubble", m.content)); w.appendChild(d); }); var l = document.getElementById("log"); l.scrollTop = l.scrollHeight; }
